@@ -7,6 +7,8 @@ type InputProps = {
   name: string
   placeholder?: string
   label?: string
+  min?: string
+  max?: string
   onChange: (e: React.ChangeEvent<any>) => void
   type?: string
   error: boolean

@@ -8,18 +8,16 @@ import { Form } from './Form'
 
 let props: any
 
-const onChangeMock = jest.fn()
-const onSubmitMock = jest.fn()
 const fetchCardsMock = jest.fn()
 describe('<Form />', () => {
   const _LABEL = /Select a title/i
 
   beforeEach(() => {
     props = {
-      handleChange: onChangeMock,
-      onSubmit: onSubmitMock,
       fetchCards: fetchCardsMock,
     }
+    fetchCardsMock.mockReturnValue({ title: 'Mr', lastName: 'blah' })
+    fetchCardsMock()
   })
 
   afterEach(() => {
@@ -27,45 +25,56 @@ describe('<Form />', () => {
     jest.resetAllMocks()
   })
   it('should render the form', async () => {
-    const { getByLabelText, container } = render(<Form {...props}></Form>)
-    console.log('container: ', container.innerHTML)
+    const { getByLabelText } = render(<Form {...props}></Form>)
     const form = getByLabelText(_LABEL)
 
     expect(form).toBeInTheDocument()
   })
-  it('should call onSubmit', async () => {
+  it('should call fetchCards', async () => {
     const { findByText } = render(<Form {...props}></Form>)
-    const form = findByText('Submit')
-
-    fireEvent.submit(await form)
+    const form = await findByText('Submit')
+    fireEvent.submit(form)
     await waitFor(() => {
-      expect(onSubmitMock).toHaveBeenCalled()
+      expect(fetchCardsMock).toHaveBeenCalled()
     })
   })
 
-  //Tried to test the on enter event but react testing library seems to have an
-  //issue with firing key event as discussed bby the same library author
-  // https://github.com/testing-library/dom-testing-library/issues/405,
-  //https://github.com/testing-library/react-testing-library/issues/269
-  it.skip('should call submit on pressing enter key', async () => {
-    const { getByText } = render(<Form {...props}></Form>)
+  it('should call fetchCards on pressing enter key', async () => {
+    const { findByText } = render(<Form {...props}></Form>)
 
-    const input = getByText('Search')
-    fireEvent.keyDown(input, { key: 'Enter', code: 13, charCode: 13 })
+    const form = await findByText('Submit')
+    fireEvent.keyDown(form, { key: 'Enter', code: 13, charCode: 13 })
 
     await waitFor(() => {
-      expect(onSubmitMock).toHaveBeenCalled()
+      expect(fetchCardsMock).toHaveBeenCalled()
     })
   })
-  it('should call onChange ', async () => {
-    const { findByPlaceholderText } = render(<Form {...props}></Form>)
 
-    const input = await findByPlaceholderText('Last Name')
+  it('should select value onChange for dropdown', async () => {
+    const { getByLabelText } = render(<Form {...props}></Form>)
+    const SelectATitle = getByLabelText('Select a title') as HTMLInputElement
+    const e = {
+      target: { value: 'Mr' },
+    }
 
-    fireEvent.change(input, { target: { value: 'Name' } })
+    fireEvent.change(SelectATitle, e)
 
-    await waitFor(() => {
-      expect(onChangeMock).toHaveBeenCalled()
+    waitFor(() => {
+      expect(SelectATitle.value).toEqual('Mr')
+    })
+  })
+
+  it('should call onChange for input', async () => {
+    const { getByLabelText } = render(<Form {...props}></Form>)
+    const FirstName = getByLabelText('First name') as HTMLInputElement
+    const e = {
+      target: { value: 'My name' },
+    }
+
+    fireEvent.change(FirstName, e)
+
+    waitFor(() => {
+      expect(FirstName.value).toEqual('My name')
     })
   })
 })

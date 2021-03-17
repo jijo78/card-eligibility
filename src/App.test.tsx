@@ -17,7 +17,8 @@ describe('<Media />', () => {
   })
 
   it('should render result section', () => {
-    const { getByText } = renderComponent()
+    const { getByText, container } = renderComponent()
+    console.log('container: ', container.innerHTML)
     const media = getByText('Total Available Credit')
     expect(media).toBeInTheDocument()
   })
